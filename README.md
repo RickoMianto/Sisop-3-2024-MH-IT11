@@ -11,8 +11,8 @@ Ketiga kode tersebut adalah auth.c, rate.c, dan db.c. Setiap kode tersebut memil
 Deskripsi : Kode ini bertanggung jawab untuk melakukan autentikasi file yang masuk ke dalam direktori new-data, memastikan bahwa file file tersebut adalah file CSV yang berisi data tentang tempat sampah di Belobong atau tempat parkir di Osaka. Jika bukan, maka file tersebut akan dihapus.
 
 Berikut adalah kode saya:
-
-`#include <stdio.h>
+```C
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -93,7 +93,8 @@ void process_directory_files() {
 int main() {
     process_directory_files();
     return 0;
-}`
+}
+```
 
 ### Hasil Run
 
