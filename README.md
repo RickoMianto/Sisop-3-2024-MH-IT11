@@ -12,7 +12,7 @@ Deskripsi : Kode ini bertanggung jawab untuk melakukan autentikasi file yang mas
 
 Berikut adalah kode saya:
 
-#include <stdio.h>
+`#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -93,7 +93,7 @@ void process_directory_files() {
 int main() {
     process_directory_files();
     return 0;
-}
+}`
 
 ### Hasil Run
 
