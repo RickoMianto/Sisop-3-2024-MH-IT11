@@ -11,6 +11,7 @@ Ketiga kode tersebut adalah auth.c, rate.c, dan db.c. Setiap kode tersebut memil
 Deskripsi : Kode ini bertanggung jawab untuk melakukan autentikasi file yang masuk ke dalam direktori new-data, memastikan bahwa file file tersebut adalah file CSV yang berisi data tentang tempat sampah di Belobong atau tempat parkir di Osaka. Jika bukan, maka file tersebut akan dihapus.
 
 Berikut adalah kode saya:
+
 ```C
 #include <stdio.h>
 #include <stdlib.h>
@@ -104,6 +105,7 @@ Deskripsi : Kode ini berfungsi untuk mengambil data CSV dari shared memory dan m
 
 Berikut adalah kode saya :
 
+```C
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -180,6 +182,7 @@ int main() {
     }    
     return 0;
 }
+```
 
 ### Hasil Run
 
@@ -189,6 +192,7 @@ Dekripsi : Kode ini berfungsi untuk memindahkan file yang telah lolos autentikas
 
 Berikut adalah kode saya :
 
+```C
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ipc.h>
@@ -265,6 +269,7 @@ int main() {
     free(new_path_2);
     return 0;
 }
+```
 
 ### Hasil Run
 
