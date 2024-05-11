@@ -98,6 +98,7 @@ int main() {
 ```
 
 ### Hasil Run
+![Screenshot_from_2024-05-11_20-27-34](https://github.com/RickoMianto/Sisop-3-2024-MH-IT11/assets/150517828/15842f0e-6961-49f8-a3d3-a72612e2f762)
 
 ## rate.c
 
@@ -185,6 +186,7 @@ int main() {
 ```
 
 ### Hasil Run
+![Screenshot_from_2024-05-11_20-29-00](https://github.com/RickoMianto/Sisop-3-2024-MH-IT11/assets/150517828/e5851ea8-8d7e-4d59-be4e-9cca495ff32f)
 
 ## db.c
 
@@ -272,6 +274,7 @@ int main() {
 ```
 
 ### Hasil Run
+![Screenshot_from_2024-05-11_20-29-26](https://github.com/RickoMianto/Sisop-3-2024-MH-IT11/assets/150517828/b3f91cfc-2c3a-4eeb-b406-55e53f4140f9)
 
 # Kendala yang Dialami
 pada soal ini ada beberapa kendala yang saya alami yaitu output pada rate.c di bagian filename masih belum sesuai dengan yang diminta soal dan pada db.c masih belum bisa memindahkan file dari new-data ke database.
