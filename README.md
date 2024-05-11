@@ -278,3 +278,265 @@ int main() {
 
 # Kendala yang Dialami
 pada soal ini ada beberapa kendala yang saya alami yaitu output pada rate.c di bagian filename masih belum sesuai dengan yang diminta soal dan pada db.c masih belum bisa memindahkan file dari new-data ke database.
+
+# Soal 3
+Dikerjakan oleh Raditya Hardian Santoso (5027231033)
+
+Kode yang disajikan adalah adalah implementasi dari layanan pemrograman bahasa C yang berfungsi untuk membangun sistem yang memungkinkan engineer di paddock (server) untuk mengontrol pengaturan mobil F1 melalui komunikasi jarak jauh dengan driver (client). 
+
+# Deskripsi Kode
+
+## actions.c
+
+Deskripsi : Kode ini berisi fungsi yang berisi logika pengaturan mobil f1 seperti ‘Gap’, ‘Fuel’, ‘Tire’, dan ‘TireChange’ untuk menghitung respons berdasarkan permintaan client.
+
+Berikut adalah kode saya:
+
+```C
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "actions.h"
+
+char* Gap(float distance) {
+    if (distance < 3.5)
+        return "Gogogo";
+    else if (distance >= 3.5 && distance <= 10)
+        return "Push";
+    else
+        return "Stay out of trouble";
+}
+
+char* Fuel(int fuelPercentage) {
+    if (fuelPercentage > 80)
+        return "Push Push Push";
+    else if (fuelPercentage >= 50 && fuelPercentage <= 80)
+        return "You can go";
+    else
+        return "Conserve Fuel";
+}
+
+char* Tire(int tireUsage) {
+    if (tireUsage > 80)
+        return "Go Push Go Push";
+    else if (tireUsage >= 50 && tireUsage <= 80)
+        return "Good Tire Wear";
+    else if (tireUsage > 30 && tireUsage < 50)
+        return "Conserve Your Tire";
+    else
+        return "Box Box Box";
+}
+
+char* TireChange(char* currentTireType) {
+    if (strcmp(currentTireType, "Soft") == 0)
+        return "Mediums Ready";
+    else if (strcmp(currentTireType, "Medium") == 0)
+        return "Box for Softs";
+    else
+        return "Invalid Tire Type";
+}
+```
+## paddock.c
+
+Deskripsi : Kode ini berfungsi untuk server yang menerima permintaan dari client (driver.c). kode ini juga memproses perintah dari client serta mengirimkan respons kembali ke client.
+
+Berikut adalah kode saya:
+
+```C
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <time.h>
+#include "actions.h" 
+
+#define PORT 8080
+#define LOG_FILE "race.log"
+
+void log_to_file(const char *source, const char *command, const char *additional_info) {
+    FILE *logfile = fopen(LOG_FILE, "a");
+    if (logfile == NULL) {
+        perror("Failed to open race.log");
+        exit(EXIT_FAILURE);
+    }
+
+    time_t now = time(NULL);
+    struct tm *tm_info = localtime(&now);
+    char timestamp[20];
+    strftime(timestamp, sizeof(timestamp), "%d/%m/%Y %H:%M:%S", tm_info);
+
+    fprintf(logfile, "[%s] [%s]: [%s] [%s]\n", source, timestamp, command, additional_info);
+
+    fclose(logfile);
+}
+
+int main() {
+    int server_fd, new_socket;
+    struct sockaddr_in address;
+    int opt = 1;
+    int addrlen = sizeof(address);
+    char buffer[1024] = {0};
+
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        perror("Socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+        perror("Setsockopt failed");
+        exit(EXIT_FAILURE);
+    }
+
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(PORT);
+
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+        perror("Bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    if (listen(server_fd, 3) < 0) {
+        perror("Listen failed");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Paddock is waiting for connections...\n");
+
+    while (1) {
+        if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
+            perror("Accept failed");
+            exit(EXIT_FAILURE);
+        }
+
+        read(new_socket, buffer, 1024);
+        printf("Received command from driver.c: %s\n", buffer);
+
+        char response[1024];
+        if (strncmp(buffer, "Fuel", 4) == 0) {
+            int fuelPercentage;
+            sscanf(buffer, "Fuel %d%%", &fuelPercentage);
+            strcpy(response, Fuel(fuelPercentage));
+        } else if (strncmp(buffer, "Gap", 3) == 0) {
+            float gapDistance;
+            sscanf(buffer, "Gap %f", &gapDistance);
+            strcpy(response, Gap(gapDistance));
+        } else if (strncmp(buffer, "Tire", 4) == 0) {
+            int tireUsage;
+            sscanf(buffer, "Tire %d", &tireUsage);
+            strcpy(response, Tire(tireUsage));
+        } else if (strncmp(buffer, "TireChange", 10) == 0) {
+            char currentTireType[20];
+            sscanf(buffer, "TireChange %s", currentTireType);
+            strcpy(response, TireChange(currentTireType));
+        }
+
+        send(new_socket, response, strlen(response), 0);
+        printf("Sent response to driver.c: %s\n", response);
+
+        log_to_file("Paddock", buffer, response);
+
+        memset(buffer, 0, sizeof(buffer));
+        close(new_socket);
+    }
+
+    return 0;
+}
+```
+
+## driver.c
+
+Deskripsi : Kode ini berfungsi sebagai client untuk mengirim perintah kepada server (paddock.c). kode ini menerima input dari pengguna dan mengirimkannya ke server. Lalu menampikan respons dari server kepada pengguna.
+
+Berikut adalah kode saya:
+
+```C
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#define PORT 8080
+#define BUFFER_SIZE 1024
+
+int main() {
+    int sock = 0, valread;
+    struct sockaddr_in serv_addr;
+    char buffer[BUFFER_SIZE] = {0};
+    char command[BUFFER_SIZE];
+
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        perror("Socket creation error");
+        return -1;
+    }
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
+
+    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+        perror("Invalid address/ Address not supported");
+        return -1;
+    }
+
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+        perror("Connection Failed");
+        return -1;
+    }
+
+    printf("Enter command (e.g., Fuel 55%%, Gap 8.5): ");
+    scanf(" %[^\n]", command); // Membaca input dari pengguna sampai newline
+
+    send(sock, command, strlen(command), 0);
+    printf("Command sent to paddock.c: %s\n", command);
+
+    valread = read(sock, buffer, BUFFER_SIZE);
+    printf("Response from paddock.c: %s\n", buffer);
+
+    close(sock);
+
+    return 0;
+}
+```
+# Langkah-langkah
+
+1. Taruh pada satu direktori yang sama, lalu compile masing-masing file (driver.c, actions.c, dan paddock.c) dengan cara :
+gcc -c actions.c -o actions.o
+gcc -c paddock.c -o paddock.o
+gcc -c driver.c -o driver.o
+gcc actions.o paddock.o -o paddock
+gcc driver.o -o driver
+2. Lalu muncul beberapa file baru hasil kompilasi ketiga file itu, yaitu driver.o, paddock.o, actions.o, dan actions.h
+3. Lalu bisa jalankan dengan terminal terpisah yang membedakan client dan server.
+Dengan server masukkan ./paddock dan server masukkan ./driver
+Maka akan muncul seperti ini :
+![image](https://github.com/RickoMianto/Sisop-3-2024-MH-IT11/assets/137570361/de5573e0-46cd-4e14-8fd6-4fd31bacd5ff)
+5. Lalu masukkan input sesuai soal, yang isinya ada Gap, Fuel, Tire, TireChange dan value yang diinginkan.
+
+# Hasil Run
+![image](https://github.com/RickoMianto/Sisop-3-2024-MH-IT11/assets/137570361/b5673558-ffad-4364-a12e-47142548c084)
+![image](https://github.com/RickoMianto/Sisop-3-2024-MH-IT11/assets/137570361/ee7d53b3-c5a8-4184-8c87-0f4d51062083)
+![image](https://github.com/RickoMianto/Sisop-3-2024-MH-IT11/assets/137570361/eaabe824-b046-4d98-a8ed-3eeba9949ae9)
+![image](https://github.com/RickoMianto/Sisop-3-2024-MH-IT11/assets/137570361/cbcb0beb-6287-4165-80b4-4c4f70a51407)
+![image](https://github.com/RickoMianto/Sisop-3-2024-MH-IT11/assets/137570361/73cecf46-a6f6-4f6f-a508-cdd6c1097a00)
+![image](https://github.com/RickoMianto/Sisop-3-2024-MH-IT11/assets/137570361/602b669e-0b00-42ed-8d46-176553c56dd7)
+![image](https://github.com/RickoMianto/Sisop-3-2024-MH-IT11/assets/137570361/602b669e-0b00-42ed-8d46-176553c56dd7)
+![image](https://github.com/RickoMianto/Sisop-3-2024-MH-IT11/assets/137570361/ea8cea08-c2c7-43f5-a8cb-fc1e193db735)
+![image](https://github.com/RickoMianto/Sisop-3-2024-MH-IT11/assets/137570361/880750c9-c83d-469b-8699-41ecbfc512af)
+![image](https://github.com/RickoMianto/Sisop-3-2024-MH-IT11/assets/137570361/8bf9a646-86f2-456b-a7d4-e63db5e461e9)
+![image](https://github.com/RickoMianto/Sisop-3-2024-MH-IT11/assets/137570361/f23b4534-4f30-47e8-8324-4d48d9d16645)
+
+Hasil race.log : 
+![image](https://github.com/RickoMianto/Sisop-3-2024-MH-IT11/assets/137570361/9da51188-5a70-4322-8163-c4ea9e67b904)
+
+# Kendala
+Kendala yang masih saya alami : 
+1. Belum menemukan cara agar bisa melakukan input terus menerus tanpa harus exit atau ctrl+c
+2. Untuk input TireChange outputnya masih boxboxbox alias hasil output dari else tire biasa
+
+
